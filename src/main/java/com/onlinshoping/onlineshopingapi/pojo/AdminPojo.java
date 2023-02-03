@@ -29,12 +29,7 @@ public class AdminPojo {
         @NotNull(message = "contactNumber is required!!")
         private String contactNumber;
 
+        private MultipartFile multipartFile;
 
-        public AdminPojo(AdminDetails adminDetails) {
-                this.id=adminDetails.getId();
-                this.name=adminDetails.getName();
-                this.address=adminDetails.getAddress();
-                this.email=adminDetails.getEmail();
-                this.contactNumber=adminDetails.getContactNumber();
-        }
+
 }

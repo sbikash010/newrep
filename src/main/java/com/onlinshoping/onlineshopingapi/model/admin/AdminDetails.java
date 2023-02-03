@@ -34,4 +34,6 @@ public class AdminDetails {
 
     private String contactNumber;
 
+    private String  filepath;
+
 }
