@@ -1,47 +1,61 @@
 package com.onlinshoping.onlineshopingapi.controller.adminController;
-
-import com.onlinshoping.onlineshopingapi.model.admin.AdminDetails;
-import com.onlinshoping.onlineshopingapi.pojo.adminpojo;
-import com.onlinshoping.onlineshopingapi.service.admin.AdminServiceImp;
+import com.onlinshoping.onlineshopingapi.pojo.AdminPojo;
+import com.onlinshoping.onlineshopingapi.pojo.GlobleApiResponse;
+import com.onlinshoping.onlineshopingapi.service.admin.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import javax.validation.Valid;
+
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/v1")
+@Validated
 public class AdminController {
-    private  final AdminServiceImp adminServiceImp;
+    private final AdminService adminService;
+
 
     @PostMapping()
-    public  AdminDetails saveaalldmin(@RequestBody AdminDetails adminDetails)
+    public ResponseEntity<GlobleApiResponse> saveAdminDetail(@Valid @RequestBody AdminPojo adminPojo) throws Exception {
+        {
+            AdminPojo adminPojo1 = adminService.saveAdmin(adminPojo);
+            return ResponseEntity.ok(new GlobleApiResponse(true, "Admin is add successfully", adminPojo1));
+        }
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<GlobleApiResponse> getAdminDetailById(@PathVariable("id") Integer id)throws Exception
     {
-        return adminServiceImp.saveAdmin(adminDetails);
+        return ResponseEntity.ok(new GlobleApiResponse(true,"Admin fetch successfully",adminService.getAdminById(id)));
+    }
+    @DeleteMapping("/{adminid}")
+    public ResponseEntity deleteAdminById(@PathVariable("adminid") Integer id )
+    {
+      return new ResponseEntity(adminService.deleteById(id), HttpStatus.OK);
     }
 
-    @GetMapping()
-    public List<AdminDetails> findlistAdmin(){
-        return adminServiceImp.getadminlist();
+
+
+    @PutMapping()
+    public ResponseEntity<GlobleApiResponse> updateAdminDetaitById(@RequestBody  AdminPojo adminPojo)
+    {
+        return ResponseEntity.ok(new GlobleApiResponse(true,"update is Successfully",adminService.updateByAdminId(adminPojo)));
+
     }
 
-    @GetMapping("/adminid/{id}")
-    public AdminDetails getdetailFindById(@PathVariable Integer id){
-        return adminServiceImp.getAdminById(id);
-    }
-
-    @GetMapping("/adminName/{name}")
-    public AdminDetails getdetailFindByName(@PathVariable String name){
-        return adminServiceImp.getAdminByName(name);
-    }
-    @PutMapping("/update")
-    public AdminDetails updatedetailFindByid(@RequestBody adminpojo admin ){
-        return adminServiceImp.updateAdmin(admin);
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public String deleteByid(@PathVariable Integer id){
-        return adminServiceImp.deleteById(id);
+    @PostMapping("/uploadFile")
+    public ResponseEntity<GlobleApiResponse> fileUpload(MultipartFile multipartFile) throws Exception
+    {
+        if(multipartFile.isEmpty())
+        {
+            return ResponseEntity.badRequest().body(new GlobleApiResponse(false,"file is not upload",null));
+        }
+        return ResponseEntity.ok(new GlobleApiResponse(true,"file is upload successfully",adminService.uploadFileByAdmin(multipartFile)));
     }
 
 }
