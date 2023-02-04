@@ -14,6 +14,7 @@ public interface AdminService {
 //
       AdminPojo getAdminById(Integer id);
       GlobleApiResponse deleteById(Integer id);
+    ResponseEntity uploadFileByAdmin(AdminPojo adminPojo);
 //      AdminPojo updateByAdminId(AdminPojo adminPojo);
 //      ResponseEntity uploadFileByAdmin(MultipartFile multipartFile);
 

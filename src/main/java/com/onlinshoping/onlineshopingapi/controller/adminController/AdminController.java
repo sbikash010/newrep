@@ -51,14 +51,25 @@ public class AdminController {
 //
 //    }
 //
-//    @PostMapping("/uploadFile")
-//    public ResponseEntity<GlobleApiResponse> fileUpload(MultipartFile multipartFile) throws Exception
+//@PostMapping("/uploadFile")
+//public ResponseEntity<GlobleApiResponse> fileUpload(MultipartFile multipartFile) throws Exception
+//{
+//    if(multipartFile.isEmpty())
 //    {
+//        return ResponseEntity.badRequest().body(new GlobleApiResponse(false,"file is not upload",null));
+//    }
+//    return ResponseEntity.ok(new GlobleApiResponse(true,"file is upload successfully",adminService.uploadFileByAdmin(multipartFile)));
+//}
+
+    @PostMapping("/uploadFile")
+    public ResponseEntity<GlobleApiResponse> fileUpload(@ModelAttribute AdminPojo adminPojo) throws Exception
+    {
+        return adminService.uploadFileByAdmin(adminPojo);
 //        if(multipartFile.isEmpty())
 //        {
 //            return ResponseEntity.badRequest().body(new GlobleApiResponse(false,"file is not upload",null));
 //        }
 //        return ResponseEntity.ok(new GlobleApiResponse(true,"file is upload successfully",adminService.uploadFileByAdmin(multipartFile)));
-//    }
+    }
 
 }

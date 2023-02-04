@@ -1,16 +1,19 @@
 package com.onlinshoping.onlineshopingapi.service.admin;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onlinshoping.onlineshopingapi.adminrepo.AdminRepo;
-import com.onlinshoping.onlineshopingapi.fileComponent.FileComponent;
+import com.onlinshoping.onlineshopingapi.fileComponent.FileComponentUtils;
 import com.onlinshoping.onlineshopingapi.model.admin.AdminDetails;
 import com.onlinshoping.onlineshopingapi.pojo.AdminPojo;
 import com.onlinshoping.onlineshopingapi.pojo.GlobleApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 
 @Service
@@ -19,8 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminServiceImp implements AdminService {
 
     private final   AdminRepo adminRepo;
-
-    private FileComponent fileComponent;
+    private final FileComponentUtils fileComponentUtils;
     @Override
     public AdminPojo saveAdmin(AdminPojo adminPojo) throws Exception  {
 
@@ -30,21 +32,23 @@ public class AdminServiceImp implements AdminService {
         else
             adminDetails = new AdminDetails();
 
-       try {
-           GlobleApiResponse globleApiResponse = fileComponent.storeFile(adminPojo.getMultipartFile());
-           adminDetails.setId(adminPojo.getId());
-           adminDetails.setName(adminPojo.getName());
-           adminDetails.setEmail(adminPojo.getEmail());
-           adminDetails.setFilepath(globleApiResponse.getData().toString());
-           adminDetails.setContactNumber(adminPojo.getContactNumber());
-           adminDetails.setAddress(adminPojo.getAddress());
-           adminRepo.save(adminDetails);
-       }catch (NullPointerException e)
-       {
 
-       }
+        String filepath=fileComponentUtils.storeFile(adminPojo);
+
+//        GlobleApiResponse globleApiResponse= fileComponent.storeFile(adminPojo);
 
 
+        adminDetails.setId(adminPojo.getId());
+        adminDetails.setName(adminPojo.getName());
+        adminDetails.setEmail(adminPojo.getEmail());
+//        if(globleApiResponse.getData()!=null) {
+//            adminDetails.setFilepath(globleApiResponse.getData().toString());
+//        }
+        adminDetails.setFilepath(fileComponentUtils.base64Encoded(filepath));
+        adminDetails.setContactNumber(adminPojo.getContactNumber());
+        adminDetails.setAddress(adminPojo.getAddress());
+        adminRepo.save(adminDetails);
+        return adminPojo;
 
 //        adminDetails.setId(adminPojo.getId());
 //        adminDetails.setName(adminPojo.getName());
@@ -52,32 +56,10 @@ public class AdminServiceImp implements AdminService {
 //        adminDetails.setContactNumber(adminPojo.getContactNumber());
 //        adminDetails.setAddress(adminPojo.getAddress());
 //        adminRepo.save(adminDetails);
-        return adminPojo;
 
 
 
 
-
-//            if(adminPojo.getId()!=null)
-//        {
-//           AdminDetails adminDetailsById=adminRepo.findById(adminPojo.getId()).orElseThrow(()->new RuntimeException("Admin detail is not exist!!!"));
-//            adminDetailsById.setId(adminPojo.getId());
-//            adminDetailsById.setName(adminPojo.getName());
-//            adminDetailsById.setEmail(adminPojo.getEmail());
-//            adminDetailsById.setContactNumber(adminPojo.getContactNumber());
-//            adminDetailsById.setAddress(adminPojo.getAddress());
-//           adminRepo.save(adminDetailsById);
-//        }else {
-//            AdminDetails adminDetails = AdminDetails.builder()
-//                    .address(adminPojo.getAddress())
-//                    .email(adminPojo.getEmail())
-//                    .name(adminPojo.getName())
-//                    .contactNumber(adminPojo.getContactNumber())
-//                    .build();
-//            adminDetails=adminRepo.save(adminDetails);
-//            return new AdminPojo(adminDetails);
-//        }
-//        return adminPojo;
 
 //        AdminDetails adminDetailsById=adminRepo.findById(adminPojo.getId()).orElseThrow(()->new RuntimeException("Admin is not exist!!!"));
 //        if(adminDetailsById.getId()!=adminPojo.getId()) {
@@ -143,11 +125,33 @@ public class AdminServiceImp implements AdminService {
 //       try(FileOutputStream outputStream=new FileOutputStream(fileDirectory))
 //        {
 //            outputStream.write(multipartFile.getBytes());
-//            return ResponseEntity.ok(new GlobleApiResponse(true,"file successfully upload",null));
+//            return ResponseEntity.ok(new GlobleApiResponse(true,"file successfully upload",filepath));
 //        }catch (Exception e)
 //       {
 //           return ResponseEntity.badRequest().body(new GlobleApiResponse(false,"file not successfully uploaded",null));
 //       }
 //
 //    }
+@Override
+public ResponseEntity uploadFileByAdmin(AdminPojo adminPojo) {
+        MultipartFile multipartFile=adminPojo.getMultipartFile();
+    String fileDir=System.getProperty("user.dir")+File.separator+"bikash";
+    File fileDirectory=new File(fileDir);
+    if(!fileDirectory.exists()) {
+        boolean mkdir= fileDirectory.mkdir();
+    }else {
+        log.info("file is already exist!!");
+    }
+    String filepath=fileDir+File.separator+multipartFile.getOriginalFilename();
+    fileDirectory=new File(filepath);
+    try(FileOutputStream outputStream=new FileOutputStream(fileDirectory))
+    {
+        outputStream.write(multipartFile.getBytes());
+        return ResponseEntity.ok(new GlobleApiResponse(true,"file successfully upload",filepath));
+    }catch (Exception e)
+    {
+        return ResponseEntity.badRequest().body(new GlobleApiResponse(false,"file not successfully uploaded",null));
+    }
+
+}
 }
