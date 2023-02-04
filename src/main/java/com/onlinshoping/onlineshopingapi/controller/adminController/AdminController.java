@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
 @RestController
@@ -31,6 +32,19 @@ public class AdminController {
         return ResponseEntity.ok(new GlobleApiResponse(true, "Admin is add successfully", adminPojo1));
 
     }
+    @GetMapping()
+    public ResponseEntity<List<AdminPojo>> getAllByAdminDetails()
+    {
+        List<AdminPojo> allDetailsAdmin=adminService.getAllDetails();
+        return new ResponseEntity<List<AdminPojo>>(allDetailsAdmin,HttpStatus.OK);
+    }
+    @GetMapping("/{pageNumber}/{pageSize}")
+    public ResponseEntity<List<AdminPojo>> getAllByAdminDetailsWithSort(@PathVariable int pageNumber,@PathVariable int pageSize)
+    {
+        List<AdminPojo> allDetailsAdmin=adminService.getAllDetailsWithSort(pageNumber,pageSize);
+        return new ResponseEntity<List<AdminPojo>>(allDetailsAdmin,HttpStatus.OK);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<GlobleApiResponse> getAdminDetailById(@PathVariable("id") Integer id)throws Exception
     {
@@ -62,7 +76,7 @@ public class AdminController {
 //}
 
     @PostMapping("/uploadFile")
-    public ResponseEntity<GlobleApiResponse> fileUpload(@ModelAttribute AdminPojo adminPojo) throws Exception
+    public ResponseEntity<GlobleApiResponse> fileUpload( AdminPojo adminPojo) throws Exception
     {
         return adminService.uploadFileByAdmin(adminPojo);
 //        if(multipartFile.isEmpty())

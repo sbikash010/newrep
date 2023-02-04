@@ -34,6 +34,7 @@ public class AdminDetails {
 
     private String contactNumber;
 
+    @Lob
     private String  filepath;
 
 }

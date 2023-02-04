@@ -1,72 +1,60 @@
-//package com.onlinshoping.onlineshopingapi.utils;
-//
-//import com.onlinshoping.onlineshopingapi.pojo.AdminPojo;
-//import com.onlinshoping.onlineshopingapi.pojo.GlobleApiResponse;
-//import lombok.extern.slf4j.Slf4j;
-//import org.apache.commons.io.FilenameUtils;
-//import org.springframework.stereotype.Component;
-//import org.springframework.web.multipart.MultipartFile;
-//
-//import java.io.File;
-//import java.io.IOException;
-//import java.nio.file.Files;
-//import java.util.Base64;
-//import java.util.UUID;
-//
-//@Component
-//@Slf4j
-//
-//public class FIleStorageUtils {
-//    public GlobleApiResponse storeFile(AdminPojo adminPojo) {
-//
-//        MultipartFile multipartFile =adminPojo.getMultipartFile();
-//
-//
-//        if (adminPojo.getId() == null && multipartFile.isEmpty()) {
-//            return GlobleApiResponse.builder().status(true).massege("image is required").build();
-//        }
-//
-//        String directoryPath = System.getProperty("user.dir") + File.separator + "image";
-//        File directoryFile = new File(directoryPath);
-//        if (!directoryFile.exists()) {
-//            directoryFile.mkdirs();
-//        } else {
-//            log.info("Directory Exists");
-//        }
-//
-//        String extension = FilenameUtils.getExtension(multipartFile.getOriginalFilename());
-//
-//
-//        if (extension.equalsIgnoreCase("pdf")||extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("jpeg") || extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("gif")) {
-//
-//            UUID uuid = UUID.randomUUID();
-//            String filePath = directoryPath + File.separator + uuid + "_" + multipartFile.getOriginalFilename();
-//            File fileToStore = new File(filePath);
-//
-//            try {
-//                multipartFile.transferTo(fileToStore);
-//                return GlobleApiResponse.builder().status(true).massege("file is upload successfully").data(filePath).build();
-//            }
-//
-//            catch (IOException exception) {
-//                return GlobleApiResponse.builder().status(false).massege("Could not read file").build();
-//            }
-//        }
-//        else {
-//            return GlobleApiResponse.builder().status(false).massege("Only pdg,jpg, jpeg,gif and png format are supported").build();
-//        }
-//    }
-//
-//
-//    public String returnFileAsBase64(String filePath) {
-//        File file = new File(filePath);
-//        try {
-//            byte[] bytes = Files.readAllBytes(file.toPath());
-//            String base64EncodedImage = "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
-//            return base64EncodedImage;
-//        } catch (IOException exception) {
-//            log.error(exception.getMessage());
-//            return null;
-//        }
-//    }
-//}
+package com.onlinshoping.onlineshopingapi.utils;
+
+import com.onlinshoping.onlineshopingapi.pojo.AdminPojo;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Base64;
+import java.util.UUID;
+
+
+@Component
+@Slf4j
+
+public class FIleStorageUtils {
+public String storeFile(AdminPojo adminPojo)
+        {
+        MultipartFile multipartFile=adminPojo.getMultipartFile();
+        String fileDir=System.getProperty("user.dir")+ File.separator+"bikash";
+//         String fileDir=new ClassPathResource("static").toString();
+
+
+        File fileDirectory=new File(fileDir);
+        if(!fileDirectory.exists()) {
+        boolean mkdir= fileDirectory.mkdir();
+        }else {
+        log.info("file is already exist!!");
+        }
+        UUID uuid = UUID.randomUUID();
+        String filepath=fileDir+File.separator+uuid+"_"+multipartFile.getOriginalFilename();
+        fileDirectory=new File(filepath);
+        try(FileOutputStream outputStream=new FileOutputStream(fileDirectory))
+        {
+        outputStream.write(multipartFile.getBytes());
+        return filepath;
+        }catch (Exception e)
+        {
+        e.printStackTrace();
+        }
+        return filepath;
+        }
+       public String base64Encoded(String filePath) throws IOException {
+        File file = new File(filePath);
+        byte[] bytes = Files.readAllBytes(file.toPath());
+        return  Base64.getEncoder().encodeToString(bytes);
+        }
+        public String base64Decoded(String filePath) throws IOException {
+         Base64.Decoder decoder=Base64.getDecoder();
+         byte[] decoderByte=decoder.decode(filePath);
+         return  new String(decoderByte);
+
+//            return  new String(Base64.getDecoder().decode(filePath));
+        }
+        }

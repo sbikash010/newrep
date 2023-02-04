@@ -14,6 +14,7 @@ import javax.validation.constraints.Pattern;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AdminPojo {
         private Integer id;
         @NotBlank(message = "Admin is not blank")
@@ -30,6 +31,7 @@ public class AdminPojo {
         private String contactNumber;
 
         private MultipartFile multipartFile;
+        private String fileLocation;
 
 
 }

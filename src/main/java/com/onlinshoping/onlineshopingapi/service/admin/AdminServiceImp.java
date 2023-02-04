@@ -1,19 +1,24 @@
 package com.onlinshoping.onlineshopingapi.service.admin;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onlinshoping.onlineshopingapi.adminrepo.AdminRepo;
-import com.onlinshoping.onlineshopingapi.fileComponent.FileComponentUtils;
 import com.onlinshoping.onlineshopingapi.model.admin.AdminDetails;
 import com.onlinshoping.onlineshopingapi.pojo.AdminPojo;
 import com.onlinshoping.onlineshopingapi.pojo.GlobleApiResponse;
+import com.onlinshoping.onlineshopingapi.utils.FIleStorageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -22,7 +27,7 @@ import java.io.FileOutputStream;
 public class AdminServiceImp implements AdminService {
 
     private final   AdminRepo adminRepo;
-    private final FileComponentUtils fileComponentUtils;
+    private final FIleStorageUtils fIleStorageUtils;
     @Override
     public AdminPojo saveAdmin(AdminPojo adminPojo) throws Exception  {
 
@@ -33,67 +38,92 @@ public class AdminServiceImp implements AdminService {
             adminDetails = new AdminDetails();
 
 
-        String filepath=fileComponentUtils.storeFile(adminPojo);
-
-//        GlobleApiResponse globleApiResponse= fileComponent.storeFile(adminPojo);
+        String filepath=fIleStorageUtils.storeFile(adminPojo);
 
 
         adminDetails.setId(adminPojo.getId());
         adminDetails.setName(adminPojo.getName());
         adminDetails.setEmail(adminPojo.getEmail());
-//        if(globleApiResponse.getData()!=null) {
-//            adminDetails.setFilepath(globleApiResponse.getData().toString());
-//        }
-        adminDetails.setFilepath(fileComponentUtils.base64Encoded(filepath));
+        adminDetails.setFilepath(fIleStorageUtils.base64Encoded(filepath));
         adminDetails.setContactNumber(adminPojo.getContactNumber());
         adminDetails.setAddress(adminPojo.getAddress());
         adminRepo.save(adminDetails);
         return adminPojo;
 
-//        adminDetails.setId(adminPojo.getId());
-//        adminDetails.setName(adminPojo.getName());
-//        adminDetails.setEmail(adminPojo.getEmail());
-//        adminDetails.setContactNumber(adminPojo.getContactNumber());
-//        adminDetails.setAddress(adminPojo.getAddress());
-//        adminRepo.save(adminDetails);
 
-
-
-
-
-//        AdminDetails adminDetailsById=adminRepo.findById(adminPojo.getId()).orElseThrow(()->new RuntimeException("Admin is not exist!!!"));
-//        if(adminDetailsById.getId()!=adminPojo.getId()) {
-//            AdminDetails adminDetails = AdminDetails.builder()
-//                    .address(adminPojo.getAddress())
-//                    .email(adminPojo.getEmail())
-//                    .name(adminPojo.getName())
-//                    .contactNumber(adminPojo.getContactNumber())
-//                    .build();
-//            adminRepo.save(adminDetails);
-//        }
-//        adminDetailsById.setId(adminPojo.getId());
-//        adminDetailsById.setName(adminPojo.getName());
-//        adminDetailsById.setEmail(adminPojo.getEmail());
-//        adminDetailsById.setContactNumber(adminPojo.getContactNumber());
-//        adminDetailsById.setAddress(adminPojo.getAddress());
-//        adminRepo.save(adminDetailsById);
-//        return adminPojo;
     }
 
     @Override
-    public GlobleApiResponse deleteById(Integer id) {;
+    public GlobleApiResponse deleteById(Integer id) {
         AdminDetails adminDetails=adminRepo.findById(id).orElseThrow(()->new RuntimeException("Admin is not exist!!!"));
         adminRepo.delete(adminDetails);
         return  GlobleApiResponse.builder().status(true).massege("Admin delete successfully").build();
+    }
+    @Override
+    public List<AdminPojo> getAllDetails() {
+
+        return adminRepo.findAll()
+                .stream().map(
+                        adminDetails ->{
+                            try {
+                                return AdminPojo.builder()
+                                        .id(adminDetails.getId())
+                                        .name(adminDetails.getName())
+                                        .address(adminDetails.getAddress())
+                                        .email(adminDetails.getEmail())
+                                        .contactNumber(adminDetails.getContactNumber())
+                                        .fileLocation(fIleStorageUtils.base64Decoded(adminDetails.getFilepath()))
+                                        .build();
+                            }catch (IOException e)
+                            {
+                                e.printStackTrace();
+                                return null;
+                            }
+
+                        })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AdminPojo> getAllDetailsWithSort(int pageNumber,int pageSize ) {
+        return adminRepo.findAll(PageRequest.of(pageNumber,pageSize)).stream().map(
+                adminDetails ->{
+                    try {
+                        return AdminPojo.builder()
+                                .id(adminDetails.getId())
+                                .name(adminDetails.getName())
+                                .address(adminDetails.getAddress())
+                                .email(adminDetails.getEmail())
+                                .contactNumber(adminDetails.getContactNumber())
+                                .fileLocation(fIleStorageUtils.base64Decoded(adminDetails.getFilepath()))
+                                .build();
+                    }catch (IOException e)
+                    {
+                        e.printStackTrace();
+                        return null;
+                    }
+
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public AdminPojo getAdminById(Integer id) {
         AdminDetails adminDetails=adminRepo.findById(id).orElseThrow(()->new RuntimeException("Admin is not recoded!!!"));
-
-//        return new AdminPojo(adminDetails);
-        ObjectMapper objectMapper=new ObjectMapper();
-        return  objectMapper.convertValue(adminDetails,AdminPojo.class);
+        try {
+            String path=fIleStorageUtils.base64Decoded(adminDetails.getFilepath());
+            return AdminPojo.builder()
+                    .name(adminDetails.getName())
+                    .address(adminDetails.getAddress())
+                    .email(adminDetails.getEmail())
+                    .contactNumber(adminDetails.getContactNumber())
+                    .fileLocation(path)
+                    .build();
+        }catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+       return null;
 
     }
 

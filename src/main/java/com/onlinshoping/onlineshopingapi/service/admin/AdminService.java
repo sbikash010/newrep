@@ -10,8 +10,9 @@ import java.util.List;
 
 public interface AdminService {
      AdminPojo saveAdmin(AdminPojo adminPojo) throws Exception;
-//     List<AdminDetails> getadminlist() ;
-//
+     List<AdminPojo> getAllDetails();
+    List<AdminPojo> getAllDetailsWithSort(int pageNumber,int pageSize);
+
       AdminPojo getAdminById(Integer id);
       GlobleApiResponse deleteById(Integer id);
     ResponseEntity uploadFileByAdmin(AdminPojo adminPojo);
